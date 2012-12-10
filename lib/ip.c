@@ -11,11 +11,14 @@ u16_t ip_cksum(void* hdr, size_t size) {
 
   u_int sum = 0;
   while (size--) {
-    sum += *hwords++;
+    sum += ntohs(*hwords);
+    ++hwords;
   }
 
   sum = (sum & 0xFFFF) + (sum >> 16);
   sum += sum >> 16;
-  return ~sum;
+  sum = ~sum & 0xFFFF;
+  sum = htons(sum);
+  return sum;
 }
 

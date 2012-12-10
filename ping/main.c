@@ -60,11 +60,14 @@ void ping(const char* destname, const struct sockaddr_in* dest,
   /* Verify. */
   struct ip* resp_ip = (struct ip*)buffer;
   size_t resp_ip_len = resp_ip->ip_hl << 2;
-  //assert(resp_ip->ip_sum == htons(ip_cksum(resp_ip, resp_ip_len)));
+  /* It appears Mac OS changes `ip_len` to just the data length in host
+   * representation. */
+  resp_ip->ip_len = htons(resp_ip->ip_len + resp_ip_len);
+  assert(0 == ip_cksum(resp_ip, resp_ip_len));
 
   struct icmp* resp_icmp = (struct icmp*)(buffer + resp_ip_len);
   size_t resp_icmp_len   = ntohs(resp_ip->ip_len) - resp_ip_len;
-  //assert(resp_icmp->icmp_cksum == htons(ip_cksum(resp_icmp, resp_icmp_len)));
+  assert(0 == ip_cksum(resp_icmp, resp_icmp_len));
   assert(resp_icmp->icmp_type  == ICMP_ECHOREPLY);
   assert(resp_icmp->icmp_code  == 0);
   assert(resp_icmp->icmp_id    == req->icmp_id);
@@ -74,7 +77,7 @@ void ping(const char* destname, const struct sockaddr_in* dest,
   printf("%ld bytes from %d.%d.%d.%d: icmp_seq=%d ttl=%d time=%.3f ms\n",
       nbytes,
       buffer[12], buffer[13], buffer[14], buffer[15],
-      resp_icmp->icmp_seq, resp_ip->ip_ttl, 0.0);
+      ntohs(resp_icmp->icmp_seq), resp_ip->ip_ttl, 0.0);
 }
 
 int main(int argc, const char** argv) {
@@ -125,12 +128,14 @@ int main(int argc, const char** argv) {
   req.icmp_code  = 0;
   req.icmp_id    = getpid();
   req.icmp_seq   = 0;
-  req.icmp_cksum = ip_cksum(&req, ICMP_MINLEN);
 
   while (true) {
+    req.icmp_cksum = 0;
+    req.icmp_cksum = ip_cksum(&req, ICMP_MINLEN);
     ping(argv[1], &dest, &req);
     sleep(1);
-    ++req.icmp_seq;
+    u16_t seq    = ntohs(req.icmp_seq) + 1;
+    req.icmp_seq = htons(seq);
   }
 
   exit(EXIT_SUCCESS);
