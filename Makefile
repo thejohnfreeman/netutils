@@ -1,5 +1,6 @@
 SRCDIR := lib
 SOURCES := \
+	io.c \
 	ip.c
 
 OBJDIR := build
@@ -59,6 +60,14 @@ $(OBJECTS) : $(OBJDIR)/$(SRCDIR)/%.o : $(SRCDIR)/%.c
 $(BINS) : $(INSTALLDIR)/% : %/main.c $(OBJECTS)
 	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) -o $@ $^
+
+
+## testing
+
+.PHONY : test
+
+test :
+	$(INSTALLDIR)/ping 8.8.8.8
 
 
 ## cleaning
