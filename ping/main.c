@@ -1,4 +1,3 @@
-#include <assert.h>
 #include <stdbool.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -13,6 +12,8 @@
 #include <netinet/ip_icmp.h>
 #include <arpa/inet.h>
 
+#include <jfnet/ip.h>
+
 int sock;
 
 void cleanup() {
@@ -21,22 +22,6 @@ void cleanup() {
 
 const char* usage =
 "usage: ping host\n";
-
-u_short ip_cksum(void* hdr, size_t size) {
-  u_short* hwords = (u_short*)hdr;
-  /* Size comes in bytes (8-bits). We want half-words (16-bits). */
-  assert(size % 2 == 0);
-  size >>= 1;
-
-  u_int sum = 0;
-  while (size--) {
-    sum += *hwords++;
-  }
-
-  sum = (sum & 0xFFFF) + (sum >> 16);
-  sum += sum >> 16;
-  return ~sum;
-}
 
 int main(int argc, const char** argv) {
 
