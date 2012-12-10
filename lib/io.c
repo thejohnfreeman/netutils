@@ -33,7 +33,7 @@ void fprintu8blks(FILE* out, enum format_t format, u8_t* bytes, size_t size,
     if (format == FORMAT_BINARY) {
       fprintf(out, "%s %s", u4str[bytes[i] >> 4], u4str[bytes[i] & 0xF]);
     } else {
-      fprintf(out, "%02X", bytes[i]);
+      fprintf(out, "%02x", bytes[i]);
     }
   }
   fflush(out);
@@ -47,7 +47,7 @@ void fprintu8(FILE* out, u8_t byte) {
   fprintu8s(out, &byte, sizeof(u8_t));
 }
 
-void printu8blks(u8_t* bytes, enum format_t format, size_t size,
+void printu8blks(enum format_t format, u8_t* bytes, size_t size,
     size_t block_size)
 {
   fprintu8blks(stdout, format, bytes, size, block_size);

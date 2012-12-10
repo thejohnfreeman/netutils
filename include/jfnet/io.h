@@ -15,7 +15,7 @@ void fprintu8blks(FILE* out, enum format_t format, u8_t* bytes, size_t size,
     size_t block_size);
 void fprintu8s(FILE* out, u8_t* bytes, size_t size);
 void fprintu8(FILE* out, u8_t byte);
-void printu8blks(u8_t* bytes, enum format_t format, size_t size,
+void printu8blks(enum format_t format, u8_t* bytes, size_t size,
     size_t block_size);
 void printu8s(u8_t* bytes, size_t size);
 void printu8(u8_t byte);
