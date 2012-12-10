@@ -46,7 +46,7 @@ void ping(const char* destname, const struct sockaddr_in* dest,
 
   /* Receive. */
 #define MAX_PACKET_SIZE 64
-  u8_t buffer[MAX_PACKET_SIZE];
+  u8_t buffer[MAX_PACKET_SIZE] = { 0 };
 
   struct sockaddr_in respr;
   socklen_t respr_len = sizeof(respr);
