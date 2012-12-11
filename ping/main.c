@@ -9,10 +9,10 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/time.h>
-#include <arpa/inet.h>  // inet_aton
 
 #include <jfnet/ip.h>
 #include <jfnet/icmp.h>
+#include <jfnet/inet.h>
 
 struct jfsock sock;
 const char* destname;
@@ -111,12 +111,7 @@ int main(int argc, const char** argv) {
   destname = argv[1];
 
   struct sockaddr_in dest;
-  memset(&dest, 0, sizeof(dest));
-  dest.sin_family = AF_INET;
-  if (0 == inet_aton(destname, &dest.sin_addr)) {
-    puts("could not parse address\n");
-    exit(EXIT_FAILURE);
-  }
+  jf_resolve(destname, &dest);
 
   /* Construct socket. */
   struct icmp* req = jficmp_ctor(&sock, /*reserve=*/ICMP_MINLEN,

@@ -3,7 +3,8 @@ SOURCES := \
 	io.c \
 	ip.c \
 	sock.c \
-	icmp.c
+	icmp.c \
+	inet.c
 
 OBJDIR := build
 OBJECTS := $(SOURCES:%.c=$(OBJDIR)/$(SRCDIR)/%.o)
