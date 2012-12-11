@@ -24,6 +24,7 @@ int tracehop(struct jfsock* sock, struct sockaddr_in* dest, int ttl,
   int notlast = 0;
   fd_set readfds;
   int wait = 5;
+  in_addr_t src_prev = 0;
 
   timeout.tv_sec = wait;
 
@@ -71,9 +72,13 @@ int tracehop(struct jfsock* sock, struct sockaddr_in* dest, int ttl,
     struct icmp* resp_icmp;
     jficmp_open(buffer, &resp_ip, &resp_icmp);
 
-    if (i == 0) {
-      assert(src.sin_addr.s_addr == *(u32_t*)(buffer + 12));
+    assert(src.sin_addr.s_addr == *(u32_t*)(buffer + 12));
+    if (src.sin_addr.s_addr != src_prev) {
+      src_prev = src.sin_addr.s_addr;
       jf_unresolve(&src, hostname);
+      if (i != 0) {
+        printf("\n   ");
+      }
       printf(" %s (%d.%d.%d.%d)",
           hostname,
           buffer[12], buffer[13], buffer[14], buffer[15]);
@@ -127,8 +132,7 @@ int main(int argc, const char** argv) {
 
   /* Receive. */
   u8_t buffer[MAX_PACKET_SIZE] = { 0 };
-  struct sockaddr_in src;
-  jficmp_recv(&sock, buffer, MAX_PACKET_SIZE, &src);
+  jficmp_recv(&sock, buffer, MAX_PACKET_SIZE, /*src=*/NULL);
 
   /* Verify. */
   struct ip* resp_ip;
