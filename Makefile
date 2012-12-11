@@ -1,7 +1,9 @@
 SRCDIR := lib
 SOURCES := \
 	io.c \
-	ip.c
+	ip.c \
+	sock.c \
+	icmp.c
 
 OBJDIR := build
 OBJECTS := $(SOURCES:%.c=$(OBJDIR)/$(SRCDIR)/%.o)

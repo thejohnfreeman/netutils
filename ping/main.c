@@ -1,26 +1,20 @@
-#include <stdbool.h>
-#include <assert.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <unistd.h>
-#include <float.h>
-#include <math.h>
-#include <signal.h>
-#include <sys/errno.h>
+#include <assert.h>     // assert
+#include <stdio.h>      // printf
+#include <string.h>     // memset
+#include <float.h>      // FLT_MAX
+#include <math.h>       // sqrt
+#include <signal.h>     // sigaction
+#include <unistd.h>     // close
+#include <sys/errno.h>  // errno
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/time.h>
-#include <netinet/in.h>
-#include <netinet/in_systm.h>
-#include <netinet/ip.h>
-#include <netinet/ip_icmp.h>
-#include <arpa/inet.h>
+#include <arpa/inet.h>  // inet_aton
 
 #include <jfnet/ip.h>
-#include <jfnet/io.h>
+#include <jfnet/icmp.h>
 
-int sock;
+struct jfsock sock;
 const char* destname;
 u_int nsent   = 0;
 u_int nrecv   = 0;
@@ -28,10 +22,6 @@ float min     = FLT_MAX;
 float max     = 0.0;
 float total   = 0.0;
 float total_2 = 0.0;
-
-void cleanup() {
-  close(sock);
-}
 
 void report() {
   printf("\n--- %s ping statistics ---\n", destname);
@@ -43,8 +33,8 @@ void report() {
       min, mean, max, stddev);
 }
 
-void onint(int sig) {
-  cleanup();
+void onsig(int sig) {
+  jfsock_dtor(&sock);
   if (sig == SIGINT) {
     report();
     fflush(/*stream=*/NULL);
@@ -53,33 +43,23 @@ void onint(int sig) {
   _exit(errno);
 }
 
-void onexit() {
-  cleanup();
-}
-
 const char* usage =
 "usage: ping host\n";
 
-void ping(const struct sockaddr_in* dest, struct icmp* req) {
+void ping(const struct sockaddr_in* dest) {
   /* Prepare to receive. We want minimal processing between send and
    * receive. */
+  struct icmp* req = (struct icmp*)sock.buffer;
 #define MAX_PACKET_SIZE 64
   u8_t buffer[MAX_PACKET_SIZE] = { 0 };
-
-  struct sockaddr_in respr;
-  socklen_t respr_len = sizeof(respr);
+  struct sockaddr_in src;
 
   /* Start timer. */
   struct timeval start, finish;
   gettimeofday(&start, /*timezone=*/NULL);
 
   /* Send. */
-  ssize_t sendbytes = sendto(sock, req, ICMP_MINLEN, /*flags=*/0,
-      (struct sockaddr*)dest, sizeof(*dest));
-  if (-1 == sendbytes) {
-    perror("could not send echo request");
-    exit(errno);
-  }
+  ssize_t sendbytes = jficmp_send(&sock, dest);
   ++nsent;
 
   /* Print. */
@@ -92,12 +72,7 @@ void ping(const struct sockaddr_in* dest, struct icmp* req) {
   }
 
   /* Receive. */
-  ssize_t recvbytes = recvfrom(sock, buffer, MAX_PACKET_SIZE, /*flags=*/0,
-      (struct sockaddr*)&respr, &respr_len);
-  if (-1 == recvbytes) {
-    perror("could not read response");
-    exit(errno);
-  }
+  ssize_t recvbytes = jficmp_recv(&sock, buffer, MAX_PACKET_SIZE, &src);
   ++nrecv;
 
   /* Stop timer. */
@@ -110,20 +85,13 @@ void ping(const struct sockaddr_in* dest, struct icmp* req) {
   total_2 += ms * ms;
 
   /* Verify. */
-  struct ip* resp_ip = (struct ip*)buffer;
-  size_t resp_ip_len = resp_ip->ip_hl << 2;
-  /* It appears Mac OS changes `ip_len` to just the data length in host
-   * representation. */
-  resp_ip->ip_len = htons(resp_ip->ip_len + resp_ip_len);
-  assert(0 == ip_cksum(resp_ip, resp_ip_len));
-
-  struct icmp* resp_icmp = (struct icmp*)(buffer + resp_ip_len);
-  size_t resp_icmp_len   = ntohs(resp_ip->ip_len) - resp_ip_len;
-  assert(0 == ip_cksum(resp_icmp, resp_icmp_len));
-  assert(resp_icmp->icmp_type  == ICMP_ECHOREPLY);
-  assert(resp_icmp->icmp_code  == 0);
-  assert(resp_icmp->icmp_id    == req->icmp_id);
-  assert(resp_icmp->icmp_seq   == req->icmp_seq);
+  struct ip* resp_ip;
+  struct icmp* resp_icmp;
+  jficmp_open(buffer, &resp_ip, &resp_icmp);
+  assert(resp_icmp->icmp_type == ICMP_ECHOREPLY);
+  assert(resp_icmp->icmp_code == 0);
+  assert(resp_icmp->icmp_id   == req->icmp_id);
+  assert(resp_icmp->icmp_seq  == req->icmp_seq);
 
   /* Print. */
   printf("%ld bytes from %d.%d.%d.%d: icmp_seq=%d ttl=%d time=%.3f ms\n",
@@ -151,56 +119,36 @@ int main(int argc, const char** argv) {
   }
 
   /* Construct socket. */
-  sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_ICMP);
-  if (-1 == sock) {
-    perror("could not acquire socket");
-    exit(errno);
-  }
-
-  /* Register function to close socket and report statistics when the process
-   * dies. */
-  atexit(&onexit);
-
-  struct sigaction act;
-  act.sa_handler = &onint;
-  if (-1 == sigaction(SIGINT, &act, /*oact=*/NULL)) {
-    perror("could not assign cleanup");
-    exit(errno);
-  }
-
-  struct sockaddr_in src;
-  memset(&src, 0, sizeof(src));
-  src.sin_family      = AF_INET;
-  src.sin_addr.s_addr = INADDR_ANY;
-
-  if (-1 == bind(sock, (struct sockaddr*)&src, sizeof(src))) {
-    perror("could not bind socket");
-    exit(errno);
-  }
+  struct icmp* req = jficmp_ctor(&sock, /*reserve=*/ICMP_MINLEN,
+      /*type=*/ICMP_ECHO, /*code=*/0);
 
   int ttl = 255;
-  if (-1 == setsockopt(sock, IPPROTO_IP, IP_TTL, &ttl, sizeof(ttl))) {
+  if (-1 == setsockopt(sock.fd, IPPROTO_IP, IP_TTL, &ttl, sizeof(ttl))) {
     perror("could not set time-to-live");
+    jfsock_dtor(&sock);
+    exit(errno);
+  }
+
+  /* Schedule reporting. */
+  struct sigaction act;
+  act.sa_handler = &onsig;
+  if (-1 == sigaction(SIGINT, &act, /*oact=*/NULL)) {
+    perror("could not schedule reporting");
+    jfsock_dtor(&sock);
     exit(errno);
   }
 
   /* Construct ICMP header. */
-  struct icmp req;
-  memset(&req, 0, sizeof(req));
-  req.icmp_type  = ICMP_ECHO;
-  req.icmp_code  = 0;
-  req.icmp_id    = getpid();
-  req.icmp_seq   = 0;
+  req->icmp_id  = getpid();
+  req->icmp_seq = 0;
 
-  while (true) {
-    req.icmp_cksum = 0;
-    req.icmp_cksum = ip_cksum(&req, ICMP_MINLEN);
-    ping(&dest, &req);
+  while (1) {
+    ping(&dest);
     sleep(1);
-    u16_t seq    = ntohs(req.icmp_seq) + 1;
-    req.icmp_seq = htons(seq);
+    u16_t seq     = ntohs(req->icmp_seq) + 1;
+    req->icmp_seq = htons(seq);
   }
 
-  exit(EXIT_SUCCESS);
+  return EXIT_SUCCESS;
 }
 
