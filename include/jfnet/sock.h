@@ -14,6 +14,7 @@ struct jfsock {
 };
 
 void jfsock_ctor(struct jfsock* sock, int type, int proto, size_t reserve);
+void jfsock_setttl(struct jfsock* sock, int ttl);
 void jfsock_resize(struct jfsock* sock, size_t length);
 void jfsock_dtor(struct jfsock* sock);
 

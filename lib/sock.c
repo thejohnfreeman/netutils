@@ -39,6 +39,14 @@ void jfsock_ctor(struct jfsock* sock, int type, int proto, size_t reserve) {
   sock->length   = reserve;
 }
 
+void jfsock_setttl(struct jfsock* sock, int ttl) {
+  if (-1 == setsockopt(sock->fd, IPPROTO_IP, IP_TTL, &ttl, sizeof(ttl))) {
+    perror("could not set time-to-live");
+    jfsock_dtor(sock);
+    exit(errno);
+  }
+}
+
 void jfsock_resize(struct jfsock* sock, size_t length) {
   if (length > sock->capacity) {
     sock->buffer   = (u8_t*)realloc(sock->buffer, length);

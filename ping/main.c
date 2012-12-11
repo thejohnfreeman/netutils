@@ -117,12 +117,7 @@ int main(int argc, const char** argv) {
   struct icmp* req = jficmp_ctor(&sock, /*reserve=*/ICMP_MINLEN,
       /*type=*/ICMP_ECHO, /*code=*/0);
 
-  int ttl = 255;
-  if (-1 == setsockopt(sock.fd, IPPROTO_IP, IP_TTL, &ttl, sizeof(ttl))) {
-    perror("could not set time-to-live");
-    jfsock_dtor(&sock);
-    exit(errno);
-  }
+  jfsock_setttl(&sock, 255);
 
   /* Schedule reporting. */
   struct sigaction act;
