@@ -1,9 +1,9 @@
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <unistd.h>
+#include <stdlib.h>     // exit, malloc, realloc, free
+#include <stdio.h>      // perror
+#include <string.h>     // memset
+#include <unistd.h>     // close
 #include <sys/socket.h>
-#include <sys/errno.h>
+#include <sys/errno.h>  // errno
 
 #include <jfnet/sock.h>
 

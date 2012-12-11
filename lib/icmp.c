@@ -4,6 +4,7 @@
 
 #include <jfnet/icmp.h>
 #include <jfnet/ip.h>
+#include <jfnet/io.h>
 #include <jfnet/byteorder.h>
 
 struct icmp* jficmp_ctor(struct jfsock* sock, size_t reserve,
@@ -51,12 +52,13 @@ void jficmp_open(void* buffer, struct ip** oip, struct icmp** oicmp) {
    * representation. */
   u16_t ip_totlen = ip->ip_len + ip_hdrlen;
   ip->ip_len = htons(ip_totlen);
-  assert(0 == ip_cksum(ip, ip_hdrlen));
+  /* Mac OS fucks with the data too much to get a correct checksum. */
+  //assert(0 == ip_cksum(ip, ip_hdrlen));
   *oip = ip;
 
   struct icmp* icmp = (struct icmp*)((u8_t*)buffer + ip_hdrlen);
   u16_t icmp_len    = ip_totlen - ip_hdrlen;
-  assert(0 == ip_cksum(icmp, icmp_len));
+  //assert(0 == ip_cksum(icmp, icmp_len));
   *oicmp = icmp;
 }
 

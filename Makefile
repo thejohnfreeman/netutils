@@ -10,7 +10,8 @@ OBJDIR := build
 OBJECTS := $(SOURCES:%.c=$(OBJDIR)/$(SRCDIR)/%.o)
 
 BINS := \
-	ping
+	ping \
+	traceroute
 
 INSTALLDIR := bin
 INSTALLDIR := $(abspath $(INSTALLDIR))
@@ -70,7 +71,7 @@ $(BINS) : $(INSTALLDIR)/% : %/main.c $(OBJECTS)
 .PHONY : test
 
 test :
-	$(INSTALLDIR)/ping 8.8.8.8
+	$(INSTALLDIR)/traceroute google.com
 
 
 ## cleaning
