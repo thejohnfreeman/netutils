@@ -9,7 +9,7 @@ INSTALLDIR := bin
 INSTALLDIR := $(abspath $(INSTALLDIR))
 
 EXE := ping
-EXE := $(INSTALLDIR)/lib$(EXE).a
+EXE := $(INSTALLDIR)/$(EXE)
 
 INCPATHS := ../jfnet/include
 

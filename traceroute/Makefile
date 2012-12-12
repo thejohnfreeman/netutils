@@ -1,6 +1,7 @@
 SRCDIR := src
 SOURCES := \
-	main.c
+	main.c \
+	opts.c
 
 OBJDIR := build
 OBJECTS := $(SOURCES:%.c=$(OBJDIR)/$(SRCDIR)/%.o)
@@ -9,7 +10,7 @@ INSTALLDIR := bin
 INSTALLDIR := $(abspath $(INSTALLDIR))
 
 EXE := traceroute
-EXE := $(INSTALLDIR)/lib$(EXE).a
+EXE := $(INSTALLDIR)/$(EXE)
 
 INCPATHS := ../jfnet/include
 
