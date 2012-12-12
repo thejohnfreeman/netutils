@@ -47,18 +47,15 @@ ssize_t jficmp_recv(struct jfsock* sock, void* buffer, size_t size,
 
 void jficmp_open(void* buffer, struct ip** oip, struct icmp** oicmp) {
   struct ip* ip   = (struct ip*)buffer;
+  fixip_osx(ip);
   u16_t ip_hdrlen = ip->ip_hl << 2;
-  /* It appears Mac OS changes `ip_len` to just the data length in host
-   * representation. */
-  u16_t ip_totlen = ip->ip_len + ip_hdrlen;
-  ip->ip_len = htons(ip_totlen);
-  /* Mac OS fucks with the data too much to get a correct checksum. */
-  //assert(0 == ip_cksum(ip, ip_hdrlen));
-  *oip = ip;
+  assert(0 == ip_cksum(ip, ip_hdrlen));
+  *oip            = ip;
 
   struct icmp* icmp = (struct icmp*)((u8_t*)buffer + ip_hdrlen);
-  u16_t icmp_len    = ip_totlen - ip_hdrlen;
+  u16_t icmp_len    = ntohs(ip->ip_len) - ip_hdrlen;
+  /* Mac OS fucks with the data too much to get a correct checksum. */
   //assert(0 == ip_cksum(icmp, icmp_len));
-  *oicmp = icmp;
+  *oicmp            = icmp;
 }
 

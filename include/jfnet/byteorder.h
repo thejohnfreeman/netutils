@@ -14,10 +14,3 @@ _Static_assert(sizeof(u32_t) == 4, "expected 4-byte u32_t");
 
 #endif
 
-#undef htons
-#undef ntohs
-
-#define htons(hword) ((u16_t)(((hword) & 0x00FF) << 8) | \
-                      (u16_t)(((hword) & 0xFF00) >> 8))
-#define ntohs(hword) htons(hword)
-
