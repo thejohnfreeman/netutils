@@ -1,7 +1,9 @@
 SRCDIR := src
 SOURCES := \
 	main.c \
-	opts.c
+	opts.c \
+	path.c \
+	icmp.c \
 
 OBJDIR := build
 OBJECTS := $(SOURCES:%.c=$(OBJDIR)/$(SRCDIR)/%.o)

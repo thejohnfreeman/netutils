@@ -1,5 +1,5 @@
-#ifndef OPTS_H
-#define OPTS_H
+#ifndef TRACEROUTE_OPTS_H
+#define TRACEROUTE_OPTS_H
 
 #include <stdbool.h>
 #include <sys/types.h>
