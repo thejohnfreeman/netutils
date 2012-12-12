@@ -1,7 +1,6 @@
 #include <assert.h>    // assert
 #include <stdio.h>     // printf
 #include <stdlib.h>    // exit, EXIT_FAILURE
-#include <unistd.h>    // getpid
 #include <netdb.h>     // NI_MAXHOST
 #include <sys/errno.h> // errno
 #include <sys/time.h>
@@ -9,10 +8,9 @@
 #include <jfnet/icmp.h>
 #include <jfnet/inet.h>
 
-#define MAX_PACKET_SIZE 64
+#include "opts.h"
 
-const char* usage =
-"usage: traceroute host\n";
+#define MAX_PACKET_SIZE 64
 
 int tracehop(struct jfsock* sock, struct sockaddr_in* dest, int ttl,
     int nqueries)
@@ -97,18 +95,12 @@ int tracehop(struct jfsock* sock, struct sockaddr_in* dest, int ttl,
   return notlast;
 }
 
-int main(int argc, const char** argv) {
-
+int main(int argc, char** argv) {
   /* Parse command line. */
-  if (argc != 2) {
-    fputs(usage, stderr);
-    exit(EXIT_FAILURE);
-  }
-
-  const char* destname = argv[1];
+  parse_options(argc, argv);
 
   struct sockaddr_in dest;
-  jf_resolve(destname, &dest);
+  jf_resolve(options.dest, &dest);
 
   /* Construct socket. */
   struct jfsock sock;
@@ -116,18 +108,17 @@ int main(int argc, const char** argv) {
       /*type=*/ICMP_ECHO, /*code=*/0);
 
   /* Ping with max TTL just to confirm the destination is reachable. */
-  int max_ttl = 64;
-  jfsock_setttl(&sock, max_ttl);
-  req->icmp_id  = getpid();
+  jfsock_setttl(&sock, options.max_ttl);
+  req->icmp_id  = options.port;
   req->icmp_seq = 0;
   ssize_t sendbytes = jficmp_send(&sock, &dest);
 
   {
     u8_t* destocts = (u8_t*)&dest.sin_addr.s_addr;
     printf("traceroute to %s (%d.%d.%d.%d), %d hops max, %ld byte packets\n",
-        destname,
+        options.dest,
         destocts[0], destocts[1], destocts[2], destocts[3],
-        max_ttl, sendbytes);
+        options.max_ttl, sendbytes);
   }
 
   /* Receive. */
@@ -143,7 +134,7 @@ int main(int argc, const char** argv) {
   assert(resp_icmp->icmp_id   == req->icmp_id);
   assert(resp_icmp->icmp_seq  == req->icmp_seq);
 
-  int ttl      = 0;
+  int ttl      = options.first_ttl - 1;
   int nqueries = 3;
   int notlast  = 0;
   do {
