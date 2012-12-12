@@ -58,5 +58,6 @@ void jfsock_resize(struct jfsock* sock, size_t length) {
 void jfsock_dtor(struct jfsock* sock) {
   if (sock->fd) close(sock->fd);
   free(sock->buffer);
+  sock->buffer = NULL;
 }
 
