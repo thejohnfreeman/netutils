@@ -12,23 +12,20 @@
 
 #define MAX_PACKET_SIZE 64
 
-int tracehop(struct jfsock* sock, struct sockaddr_in* dest, int ttl,
-    int nqueries)
-{
+int tracehop(struct jfsock* sock, struct sockaddr_in* dest, int ttl) {
   struct icmp* req = (struct icmp*)sock->buffer;
   u8_t buffer[MAX_PACKET_SIZE] = { 0 };
   char hostname[NI_MAXHOST + 1];
   struct timeval start, finish, timeout = { 0 };
   int notlast = 0;
   fd_set readfds;
-  int wait = 5;
   in_addr_t src_prev = 0;
 
-  timeout.tv_sec = wait;
+  timeout.tv_sec = options.recvwait;
 
   printf("%2d ", ttl);
 
-  for (int i = 0; i < nqueries; ++i) {
+  for (int i = 0; i < options.nqueries; ++i) {
     /* Start timer. */
     gettimeofday(&start, /*timezone=*/NULL);
 
@@ -134,12 +131,11 @@ int main(int argc, char** argv) {
   assert(resp_icmp->icmp_id   == req->icmp_id);
   assert(resp_icmp->icmp_seq  == req->icmp_seq);
 
-  int ttl      = options.first_ttl - 1;
-  int nqueries = 3;
-  int notlast  = 0;
+  int ttl     = options.first_ttl - 1;
+  int notlast = 0;
   do {
     ++ttl;
-    notlast = tracehop(&sock, &dest, ttl, nqueries);
+    notlast = tracehop(&sock, &dest, ttl);
   } while (notlast);
 
   return EXIT_SUCCESS;
