@@ -5,10 +5,14 @@
 #include "path.h"
 #include "opts.h"
 
-static void path_println(struct probe* probes, int nprobes, FILE* out) {
+void path_println(struct path* path, int ttl,  FILE* out) {
+  struct probe* probes          = path_getprobe(path, ttl, 0);
   struct probe* probe           = probes;
+  int           nprobes         = path->nprobes;
   union addr    src             = { .in_addr = 0 };
   char hostname[NI_MAXHOST + 1] = { '\0' };
+
+  printf("%2d ", ttl);
 
   for (; probe < probes + nprobes; ++probe) {
 
@@ -39,15 +43,13 @@ static void path_println(struct probe* probes, int nprobes, FILE* out) {
 
     printf("  %.3f ms", probe->ms);
   }
+
+  puts("");
 }
 
 void path_print(struct path* path, int nhops, FILE* out) {
-  struct probe* probes = path->probes;
   for (int i = 0; i < nhops; ++i) {
-    printf("%2d ", i);
-    path_println(probes, path->nprobes, out);
-    puts("");
-    probes += path->nprobes;
+    path_println(path, /*ttl=*/i + 1, out);
   }
 }
 

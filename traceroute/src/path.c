@@ -12,7 +12,7 @@ void path_ctor(struct path* path, int max_ttl, int nprobes) {
 }
 
 struct probe* path_getprobe(struct path* path, int ttl, int seq) {
-  return path->probes + (ttl * path->nprobes * sizeof(struct probe)) + seq;
+  return path->probes + ((ttl - 1) * path->nprobes) + seq;
 }
 
 void path_dtor(struct path* path) {

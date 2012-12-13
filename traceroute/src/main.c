@@ -58,7 +58,7 @@ int main(int argc, char** argv) {
     ++ttl;
   } while (!reached_dest && ttl < options.max_ttl);
 
-  path_print(&path, /*nhops=*/ttl, stdout);
+  path_print(&path, /*nhops=*/ttl - options.first_ttl, stdout);
 
   return EXIT_SUCCESS;
 }
