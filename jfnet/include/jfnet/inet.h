@@ -5,6 +5,7 @@
 
 void jf_resolve(const char* hostname, struct sockaddr_in* addr);
 void jf_unresolve(const struct sockaddr_in* addr, char* hostname);
+void jf_unresolve4(in_addr_t addr, char* hostname);
 
 #endif
 

@@ -6,17 +6,18 @@
 #include "opts.h"
 
 struct options options = {
-  /*probe=*/      PROBE_ICMP,
+  /*method=*/     METHOD_ICMP,
   /*src=*/        NULL,
   /*dest=*/       NULL,
   /*port=*/       0,
   /*first_ttl=*/  1,
   /*max_ttl=*/    30,
-  /*nqueries=*/   3,
-  /*squeries=*/   16,
+  /*nprobes=*/    3,
+  /*sprobes=*/    16,
   /*sendwait=*/   0.0,
   /*recvwait=*/   5.0,
-  /*reverse_dns=*/true
+  /*reverse_dns=*/true,
+  /*format=*/     FORMAT_DEFAULT
 };
 
 static struct option long_opts[] = {
@@ -24,7 +25,7 @@ static struct option long_opts[] = {
   { 0, 0, 0, 0 }
 };
 
-const char* short_opts = "f:hIm:nN:p:q:s:TUw:z:";
+const char* short_opts = "1f:hIm:nN:p:q:s:TUw:z:";
 
 const char* usage =
 "usage: traceroute host\n";
@@ -57,18 +58,18 @@ void parse_options(int argc, char** argv) {
         exit(EXIT_SUCCESS);
 
       case 'I':
-        options.probe = PROBE_ICMP;
-        options.port  = getpid();
+        options.method = METHOD_ICMP;
+        options.port   = getpid();
         break;
 
       case 'T':
-        options.probe = PROBE_TCP;
-        options.port  = 80;
+        options.method = METHOD_TCP;
+        options.port   = 80;
         break;
 
       case 'U':
-        options.probe = PROBE_UDP_PORT;
-        options.port  = 53;
+        options.method = METHOD_UDP_PORT;
+        options.port   = 53;
         break;
 
       case 's':
@@ -96,15 +97,18 @@ void parse_options(int argc, char** argv) {
         break;
 
       case 'q':
-        options.nqueries = atoi(optarg);
-        OPTION_ASSERT(options.nqueries > 0,
-            "nqueries must be > 0");
+        if (options.format == FORMAT_ONE_PER_LINE) {
+          break;
+        }
+        options.nprobes = atoi(optarg);
+        OPTION_ASSERT(options.nprobes > 0,
+            "nprobes must be > 0");
         break;
 
       case 'N':
-        options.squeries = atoi(optarg);
-        OPTION_ASSERT(options.squeries > 0,
-            "squeries must be > 0");
+        options.sprobes = atoi(optarg);
+        OPTION_ASSERT(options.sprobes > 0,
+            "sprobes must be > 0");
         break;
 
       case 'z':
@@ -120,6 +124,15 @@ void parse_options(int argc, char** argv) {
 
       case 'n':
         options.reverse_dns = false;
+        break;
+
+      case '1':
+        options.format  = FORMAT_ONE_PER_LINE;
+        options.nprobes = 1;
+        break;
+
+      default:
+        exit(EXIT_FAILURE);
     }
 
   }

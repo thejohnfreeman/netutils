@@ -25,3 +25,11 @@ void jf_unresolve(const struct sockaddr_in* addr, char* hostname) {
   }
 }
 
+void jf_unresolve4(in_addr_t addr, char* hostname) {
+  struct sockaddr_in wrapper;
+  wrapper.sin_len         = sizeof(wrapper);
+  wrapper.sin_family      = AF_INET;
+  wrapper.sin_addr.s_addr = addr;
+  jf_unresolve(&wrapper, hostname);
+}
+
