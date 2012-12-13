@@ -35,18 +35,20 @@ int main(int argc, char** argv) {
         options.max_ttl, sendbytes);
   }
 
-  /* Receive. */
-  u8_t buffer[MAX_PACKET_SIZE] = { 0 };
-  jficmp_recv(&sock, buffer, MAX_PACKET_SIZE, /*src=*/NULL);
+  {
+    /* Receive. */
+    u8_t buffer[MAX_PACKET_SIZE] = { 0 };
+    jficmp_recv(&sock, buffer, MAX_PACKET_SIZE, /*src=*/NULL);
 
-  /* Verify. */
-  struct ip* resp_ip;
-  struct icmp* resp_icmp;
-  jficmp_open(buffer, &resp_ip, &resp_icmp);
-  assert(resp_icmp->icmp_type == ICMP_ECHOREPLY);
-  assert(resp_icmp->icmp_code == 0);
-  assert(resp_icmp->icmp_id   == req->icmp_id);
-  assert(resp_icmp->icmp_seq  == req->icmp_seq);
+    /* Verify. */
+    struct ip* resp_ip;
+    struct icmp* resp_icmp;
+    jficmp_open(buffer, &resp_ip, &resp_icmp);
+    assert(resp_icmp->icmp_type == ICMP_ECHOREPLY);
+    assert(resp_icmp->icmp_code == 0);
+    assert(resp_icmp->icmp_id   == req->icmp_id);
+    assert(resp_icmp->icmp_seq  == req->icmp_seq);
+  }
 
   struct path path;
   path_ctor(&path, options.max_ttl, options.nprobes);
