@@ -16,7 +16,8 @@ struct options options = {
   /*sprobes=*/    16,
   /*sendwait=*/   0.0,
   /*recvwait=*/   5.0,
-  /*reverse_dns=*/true
+  /*reverse_dns=*/true,
+  /*format=*/     FORMAT_DEFAULT
 };
 
 static struct option long_opts[] = {
@@ -24,7 +25,7 @@ static struct option long_opts[] = {
   { 0, 0, 0, 0 }
 };
 
-const char* short_opts = "f:hIm:nN:p:q:s:TUw:z:";
+const char* short_opts = "1f:hIm:nN:p:q:s:TUw:z:";
 
 const char* usage =
 "usage: traceroute host\n";
@@ -96,6 +97,9 @@ void parse_options(int argc, char** argv) {
         break;
 
       case 'q':
+        if (options.format == FORMAT_ONE_PER_LINE) {
+          break;
+        }
         options.nprobes = atoi(optarg);
         OPTION_ASSERT(options.nprobes > 0,
             "nprobes must be > 0");
@@ -120,6 +124,15 @@ void parse_options(int argc, char** argv) {
 
       case 'n':
         options.reverse_dns = false;
+        break;
+
+      case '1':
+        options.format  = FORMAT_ONE_PER_LINE;
+        options.nprobes = 1;
+        break;
+
+      default:
+        exit(EXIT_FAILURE);
     }
 
   }

@@ -27,7 +27,7 @@ int main(int argc, char** argv) {
   req->icmp_seq = 0;
   ssize_t sendbytes = jficmp_send(&sock, &dest);
 
-  {
+  if (options.format == FORMAT_DEFAULT) {
     u8_t* destocts = (u8_t*)&dest.sin_addr.s_addr;
     printf("traceroute to %s (%d.%d.%d.%d), %d hops max, %ld byte packets\n",
         options.dest,
@@ -55,10 +55,13 @@ int main(int argc, char** argv) {
   bool reached_dest;
   do {
     reached_dest = pinghop_icmp(&sock, &dest, ttl, &path);
+    if (options.format == FORMAT_ONE_PER_LINE) {
+      path_print1(&path, ttl, stdout);
+    } else {
+      path_println(&path, ttl, stdout);
+    }
     ++ttl;
   } while (!reached_dest && ttl < options.max_ttl);
-
-  path_print(&path, /*nhops=*/ttl - options.first_ttl, stdout);
 
   return EXIT_SUCCESS;
 }

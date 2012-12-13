@@ -5,6 +5,15 @@
 #include "path.h"
 #include "opts.h"
 
+void path_print1(struct path* path, int ttl,  FILE* out) {
+  struct probe* probe = path_getprobe(path, ttl, 0);
+  union addr src      = probe->src;
+  if (src.in_addr) {
+    printf("%d.%d.%d.%d\n",
+        src.octs[0], src.octs[1], src.octs[2], src.octs[3]);
+  }
+}
+
 void path_println(struct path* path, int ttl,  FILE* out) {
   struct probe* probes          = path_getprobe(path, ttl, 0);
   struct probe* probe           = probes;

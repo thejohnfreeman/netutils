@@ -14,6 +14,11 @@ enum method {
   METHOD_UDPLITE
 };
 
+enum format {
+  FORMAT_DEFAULT,
+  FORMAT_ONE_PER_LINE
+};
+
 struct options {
   enum method method;
   const char* src;
@@ -26,6 +31,7 @@ struct options {
   float       sendwait;
   float       recvwait;
   bool        reverse_dns;
+  enum format format;
 };
 
 extern struct options options;
