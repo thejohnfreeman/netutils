@@ -49,14 +49,16 @@ int main(int argc, char** argv) {
   assert(resp_icmp->icmp_seq  == req->icmp_seq);
 
   struct path path;
-  path_ctor(&path, options.max_ttl, options.nqueries);
+  path_ctor(&path, options.max_ttl, options.nprobes);
 
-  int ttl     = options.first_ttl - 1;
-  int notlast = 0;
+  int ttl = options.first_ttl;
+  bool reached_dest;
   do {
+    reached_dest = pinghop_icmp(&sock, &dest, ttl, &path);
     ++ttl;
-    notlast = pinghop_icmp(&sock, &dest, ttl);
-  } while (notlast);
+  } while (!reached_dest && ttl < options.max_ttl);
+
+  path_print(&path, /*nhops=*/ttl, stdout);
 
   return EXIT_SUCCESS;
 }

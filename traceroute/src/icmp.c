@@ -12,22 +12,19 @@
 #include "path.h"
 #include "opts.h"
 
-int pinghop_icmp(struct jfsock* sock, struct sockaddr_in* dest, int ttl,
+bool pinghop_icmp(struct jfsock* sock, struct sockaddr_in* dest, int ttl,
     struct path* path)
 {
-  struct icmp* req = (struct icmp*)sock->buffer;
+  bool           reached_dest  = false;
+  struct icmp*   req           = (struct icmp*)sock->buffer;
+  struct timeval timeout       = { 0 };
   u8_t buffer[MAX_PACKET_SIZE] = { 0 };
-  char hostname[NI_MAXHOST + 1];
-  struct timeval start, finish, timeout = { 0 };
-  int notlast = 0;
+  struct timeval start, finish;
   fd_set readfds;
-  in_addr_t src_prev = 0;
 
   timeout.tv_sec = options.recvwait;
 
-  printf("%2d ", ttl);
-
-  for (int i = 0; i < options.nqueries; ++i) {
+  for (int i = 0; i < path->nprobes; ++i) {
     /* Start timer. */
     gettimeofday(&start, /*timezone=*/NULL);
 
@@ -47,11 +44,8 @@ int pinghop_icmp(struct jfsock* sock, struct sockaddr_in* dest, int ttl,
       exit(errno);
     }
 
-    /* In case of timeout, show progress. */
+    /* In case of timeout, don't worry about the rest. */
     if (!isready) {
-      printf(" *");
-      fflush(NULL);
-      notlast = 1;
       continue;
     }
 
@@ -64,33 +58,20 @@ int pinghop_icmp(struct jfsock* sock, struct sockaddr_in* dest, int ttl,
     struct sockaddr_in src;
     jficmp_recv(sock, buffer, MAX_PACKET_SIZE, &src);
 
-    /* Print. */
+    struct probe* probe = path_getprobe(path, ttl, i);
+    probe->src.in_addr  = src.sin_addr.s_addr;
+    probe->ms           = ms;
+
+    /* Check if we found the last hop. */
     struct ip* resp_ip;
     struct icmp* resp_icmp;
     jficmp_open(buffer, &resp_ip, &resp_icmp);
-
     assert(src.sin_addr.s_addr == *(u32_t*)(buffer + 12));
-    if (src.sin_addr.s_addr != src_prev) {
-      src_prev = src.sin_addr.s_addr;
-      jf_unresolve(&src, hostname);
-      if (i != 0) {
-        printf("\n   ");
-      }
-      printf(" %s (%d.%d.%d.%d)",
-          hostname,
-          buffer[12], buffer[13], buffer[14], buffer[15]);
-    }
-
-    printf("  %.3f ms", ms);
-
-    /* Check if we need to continue. */
-    if (resp_icmp->icmp_type == ICMP_TIMXCEED) {
-      notlast = 1;
+    if (resp_icmp->icmp_type == ICMP_ECHOREPLY) {
+      reached_dest = true;
     }
   }
 
-  puts("");
-
-  return notlast;
+  return reached_dest;
 }
 

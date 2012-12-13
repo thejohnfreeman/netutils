@@ -3,6 +3,7 @@ SOURCES := \
 	main.c \
 	opts.c \
 	path.c \
+	print.c \
 	icmp.c \
 
 OBJDIR := build
