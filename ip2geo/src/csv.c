@@ -17,7 +17,7 @@ void csv_ctor(struct csv* csv) {
   csv->size  = INITIAL_BUFFER_SIZE;
 }
 
-void csv_next_row(struct csv* csv, FILE* file) {
+const char* csv_next_row(struct csv* csv, FILE* file) {
   size_t start = 0;
 
   while (1) {
@@ -44,6 +44,8 @@ void csv_next_row(struct csv* csv, FILE* file) {
   }
 
   csv->it = (*csv->buffer == '\0') ? (NULL) : (csv->buffer);
+
+  return csv->buffer;
 }
 
 const char* csv_next_field(struct csv* csv) {
@@ -98,6 +100,57 @@ const char* csv_next_field(struct csv* csv) {
   csv->it = ((c == '\n') || (c == '\0')) ? NULL : (end + 1);
 
   return begin;
+}
+
+/* Binary search to find `key` in the rows of `file` according to `comp`.  */
+const char* csv_bsearch(struct csv* csv, FILE* file, const void* key,
+    int (*comp)(const void* key, const char* row))
+{
+  int error = fseek(file, 0, SEEK_END);
+  if (error) {
+    err(errno, "abort: fseek with SEEK_END");
+  }
+
+  long fsize = ftell(file);
+  if (fsize < 0) {
+    err(errno, "abort: ftell for file size");
+  }
+
+  long low  = 0;
+  long high = fsize;
+  long pos  = 0;
+  while (1) {
+    assert(low < high);
+
+    /* Seek up or down. */
+    long mid = low + ((high - low) >> 1);
+    error = fseek(file, mid, SEEK_SET);
+    if (error) {
+      err(errno, "abort: fseek with SEEK_SET");
+    }
+
+    /* Find the row I'm in. */
+    frseekln(file);
+
+    /* Make sure it's not the same as the last row. */
+    long pos_next = ftell(file);
+    if (pos_next == pos) {
+      puts("key not found in database");
+      return NULL;
+    }
+    pos = pos_next;
+
+    /* Parse the row. */
+    const char* row = csv_next_row(csv, file);
+    int branch = comp(key, row);
+    if (branch < 0) {
+      high = mid;
+    } else if (branch > 0) {
+      low = mid;
+    } else {
+      return row;
+    }
+  }
 }
 
 void csv_dtor(struct csv* csv) {

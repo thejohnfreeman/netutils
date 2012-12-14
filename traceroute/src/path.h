@@ -2,14 +2,8 @@
 #define TRACEROUTE_PATH_H
 
 #include <stdio.h>
-#include <netinet/in.h> // in_addr_t
 
-#include <jfnet/byteorder.h>
-
-union addr {
-  u8_t      octs[4];
-  in_addr_t in_addr;
-};
+#include <jfnet/inet.h>
 
 struct probe {
   union addr src;

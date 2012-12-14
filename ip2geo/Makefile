@@ -13,7 +13,7 @@ INSTALLDIR := $(abspath $(INSTALLDIR))
 EXE := ip2geo
 EXE := $(INSTALLDIR)/$(EXE)
 
-INCPATHS :=
+INCPATHS := ../jfnet/include
 
 LIBPATHS :=
 LIBS :=
