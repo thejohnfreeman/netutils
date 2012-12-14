@@ -1,9 +1,9 @@
-#include <stdlib.h>     // exit, malloc, realloc, free
-#include <stdio.h>      // perror
+#include <stdlib.h>     // malloc, realloc, free
 #include <string.h>     // memset
 #include <unistd.h>     // close
+#include <err.h>        // err
+#include <errno.h>      // errno
 #include <sys/socket.h>
-#include <sys/errno.h>  // errno
 
 #include <jfnet/sock.h>
 
@@ -12,8 +12,7 @@ void jfsock_ctor(struct jfsock* sock, int type, int proto, size_t reserve) {
 
   sock->fd = socket(AF_INET, type, proto);
   if (-1 == sock->fd) {
-    perror("could not acquire socket");
-    exit(errno);
+    err(errno, "could not acquire socket");
   }
 
   struct sockaddr_in addr;
@@ -22,16 +21,14 @@ void jfsock_ctor(struct jfsock* sock, int type, int proto, size_t reserve) {
   addr.sin_addr.s_addr = INADDR_ANY;
 
   if (-1 == bind(sock->fd, (struct sockaddr*)&addr, sizeof(addr))) {
-    perror("could not bind socket");
     jfsock_dtor(sock);
-    exit(errno);
+    err(errno, "could not bind socket");
   }
 
   sock->buffer = (u8_t*)malloc(reserve);
   if (!sock->buffer) {
-    perror("could not allocate packet");
     jfsock_dtor(sock);
-    exit(errno);
+    err(errno, "could not allocate packet");
   }
 
   memset(sock->buffer, 0, reserve);
@@ -41,9 +38,8 @@ void jfsock_ctor(struct jfsock* sock, int type, int proto, size_t reserve) {
 
 void jfsock_setttl(struct jfsock* sock, int ttl) {
   if (-1 == setsockopt(sock->fd, IPPROTO_IP, IP_TTL, &ttl, sizeof(ttl))) {
-    perror("could not set time-to-live");
     jfsock_dtor(sock);
-    exit(errno);
+    err(errno, "could not set time-to-live");
   }
 }
 

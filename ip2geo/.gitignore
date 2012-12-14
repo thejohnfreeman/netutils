@@ -1,0 +1,5 @@
+/build
+/bin
+/database
+/*.tar*
+

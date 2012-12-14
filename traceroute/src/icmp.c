@@ -1,9 +1,9 @@
 #include <assert.h>    // assert
 #include <stdio.h>     // printf
-#include <stdlib.h>    // exit, EXIT_FAILURE
 #include <netdb.h>     // NI_MAXHOST
 #include <math.h>      // modf
-#include <sys/errno.h> // errno
+#include <err.h>       // err
+#include <errno.h>     // errno
 #include <sys/time.h>
 
 #include <jfnet/icmp.h>
@@ -43,9 +43,8 @@ bool pinghop_icmp(struct jfsock* sock, struct sockaddr_in* dest, int ttl,
     int isready = select(/*nfds=*/sock->fd + 1, &readfds,
         /*writefds=*/NULL, /*exceptfds=*/NULL, &timeout);
     if (isready < 0) {
-      perror("unexpected error waiting for response");
       jfsock_dtor(sock);
-      exit(errno);
+      err(errno, "unexpected error waiting for response");
     }
 
     /* In case of timeout, don't worry about the rest. */

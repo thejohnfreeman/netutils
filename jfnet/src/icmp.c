@@ -1,6 +1,7 @@
 #include <assert.h>
 #include <stdio.h>
-#include <sys/errno.h>
+#include <err.h>
+#include <errno.h>
 
 #include <jfnet/icmp.h>
 #include <jfnet/ip.h>
@@ -24,9 +25,8 @@ ssize_t jficmp_send(struct jfsock* sock, const struct sockaddr_in* dest) {
   ssize_t sendbytes = sendto(sock->fd, hdr, sock->length, /*flags=*/0,
       (struct sockaddr*)dest, sizeof(*dest));
   if (-1 == sendbytes) {
-    perror("could not send ICMP message");
     jfsock_dtor(sock);
-    exit(errno);
+    err(errno, "could not send ICMP message");
   }
   return sendbytes;
 }
@@ -38,9 +38,8 @@ ssize_t jficmp_recv(struct jfsock* sock, void* buffer, size_t size,
   ssize_t recvbytes = recvfrom(sock->fd, buffer, size, /*flags=*/0,
       (struct sockaddr*)src, &src_len);
   if (-1 == recvbytes) {
-    perror("could not read response");
     jfsock_dtor(sock);
-    exit(errno);
+    err(errno, "could not read response");
   }
   return recvbytes;
 }

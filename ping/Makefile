@@ -73,7 +73,7 @@ $(EXE) : $(OBJECTS)
 
 .PHONY : test
 
-test :
+test : all
 	$(abspath $(EXE)) google.com
 
 

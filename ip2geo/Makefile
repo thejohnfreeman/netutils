@@ -1,10 +1,10 @@
 SRCDIR := src
 SOURCES := \
 	main.c \
-	opts.c \
-	path.c \
-	print.c \
-	icmp.c \
+	csv.c \
+	io.c \
+	compare.c \
+	lookup.c \
 
 OBJDIR := build
 OBJECTS := $(SOURCES:%.c=$(OBJDIR)/$(SRCDIR)/%.o)
@@ -12,13 +12,13 @@ OBJECTS := $(SOURCES:%.c=$(OBJDIR)/$(SRCDIR)/%.o)
 INSTALLDIR := bin
 INSTALLDIR := $(abspath $(INSTALLDIR))
 
-EXE := traceroute
+EXE := ip2geo
 EXE := $(INSTALLDIR)/$(EXE)
 
 INCPATHS := ../jfnet/include
 
-LIBPATHS := ../jfnet/lib
-LIBS := jfnet
+LIBPATHS :=
+LIBS :=
 
 
 ## default target
@@ -77,8 +77,8 @@ $(EXE) : $(OBJECTS)
 
 .PHONY : test
 
-test : all
-	$(abspath $(EXE)) google.com
+test :
+	$(abspath $(EXE)) 74.125.227.128
 
 
 ## cleaning
