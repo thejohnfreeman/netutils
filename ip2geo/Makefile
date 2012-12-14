@@ -3,6 +3,8 @@ SOURCES := \
 	main.c \
 	csv.c \
 	io.c \
+	compare.c \
+	lookup.c \
 
 OBJDIR := build
 OBJECTS := $(SOURCES:%.c=$(OBJDIR)/$(SRCDIR)/%.o)

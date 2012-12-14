@@ -135,7 +135,7 @@ const char* csv_bsearch(struct csv* csv, FILE* file, const void* key,
     /* Make sure it's not the same as the last row. */
     long pos_next = ftell(file);
     if (pos_next == pos) {
-      puts("key not found in database");
+      /* Key not found. */
       return NULL;
     }
     pos = pos_next;
