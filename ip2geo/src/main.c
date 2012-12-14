@@ -6,10 +6,12 @@
 #include "io.h"
 #include "csv.h"
 
-#define MAX_LINE_LENGTH 16
-
 int main(int argc, char** argv) {
   FILE* db = fopen("database/GeoLiteCity-Blocks.csv", "rb");
+  if (!db) {
+    fputs("error: database missing\n", stderr);
+    exit(EXIT_FAILURE);
+  }
 
   int error = fseek(db, 0, SEEK_END);
   if (error) {
@@ -32,16 +34,17 @@ int main(int argc, char** argv) {
     exit(errno);
   }
 
-  static char buffer[MAX_LINE_LENGTH + 1] = { '\0' };
-  fseekln(db);
+  frseekln(db);
 
   struct csv csv;
   csv_ctor(&csv);
 
-  csv_next_row(&csv, db);
-  const char* field;
-  while ((field = csv_next_field(&csv))) {
-    printf("field [%ld] = |%s|\n", strlen(field), field);
+  for (int i = 0; i < 3; ++i) {
+    csv_next_row(&csv, db);
+    const char* field;
+    while ((field = csv_next_field(&csv))) {
+      printf("field [%2ld] = |%s|\n", strlen(field), field);
+    }
   }
 
   fclose(db);

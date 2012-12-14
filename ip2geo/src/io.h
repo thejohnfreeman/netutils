@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 
+void frseekln(FILE* file);
 long fseekln(FILE* file);
 char* nextof(const char* haystack, const char* needles);
 
