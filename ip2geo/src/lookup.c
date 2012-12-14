@@ -21,14 +21,13 @@ int ip2geo(const char* host, FILE* blk_db, FILE* loc_db, struct csv* csv,
 
   const char* row = csv_bsearch(csv, blk_db, &addr.in_addr, &comp_blk);
   if (!row) {
-    printf("%s not found in database\n", host);
     return EXIT_FAILURE;
   }
 
   u_int id;
   error = sscanf(row, "\"%*u\",\"%*u\",\"%u\"", &id);
   if (error == EOF || error < 1) {
-    fprintf(stderr, "error: could not parse block id for %s\n", host);
+    fprintf(stderr, "abort: could not parse block id for %s\n", host);
     return EXIT_FAILURE;
   }
 
@@ -36,7 +35,7 @@ int ip2geo(const char* host, FILE* blk_db, FILE* loc_db, struct csv* csv,
 
   row = csv_bsearch(csv, loc_db, &id, &comp_loc);
   if (!row) {
-    printf("block %u not found in database\n", id);
+    fprintf(stderr, "abort: block %u not found in database\n", id);
     return EXIT_FAILURE;
   }
 
