@@ -1,6 +1,8 @@
+#include <assert.h>
+#include <ctype.h>
 #include <stdio.h>
 #include <string.h>
-#include <stdlib.h> // exit
+#include <err.h>    // err
 #include <errno.h>  // errno
 
 #include "io.h"
@@ -9,42 +11,38 @@
 int main(int argc, char** argv) {
   FILE* db = fopen("database/GeoLiteCity-Blocks.csv", "rb");
   if (!db) {
-    fputs("error: database missing\n", stderr);
-    exit(EXIT_FAILURE);
+    err(errno, "error: cannot open database");
   }
 
   int error = fseek(db, 0, SEEK_END);
   if (error) {
-    perror("SEEK_END unavailable");
-    exit(errno);
+    err(errno, "abort: fseek with SEEK_END");
   }
 
   long fsize = ftell(db);
   if (fsize < 0) {
-    perror("could not determine file size");
-    exit(errno);
+    err(errno, "abort: ftell for file size");
   }
 
   printf("database size: %ld\n", fsize);
 
-  long mid = fsize >> 2;
-  error = fseek(db, mid, SEEK_SET);
-  if (error) {
-    perror("fseek");
-    exit(errno);
-  }
-
-  frseekln(db);
-
   struct csv csv;
   csv_ctor(&csv);
 
-  for (int i = 0; i < 3; ++i) {
-    csv_next_row(&csv, db);
-    const char* field;
-    while ((field = csv_next_field(&csv))) {
-      printf("field [%2ld] = |%s|\n", strlen(field), field);
+  long pos = fsize >> 2;
+  while (1) {
+    error = fseek(db, pos, SEEK_SET);
+    if (error) {
+      err(errno, "abort: fseek with SEEK_SET");
     }
+
+    frseekln(db);
+    csv_next_row(&csv, db);
+    const char* lows = csv_next_field(&csv);
+    assert(lows && isdigit(*lows));
+    const char* highs = csv_next_field(&csv);
+    assert(highs && isdigit(*highs));
+    break;
   }
 
   fclose(db);

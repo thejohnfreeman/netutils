@@ -5,7 +5,8 @@
 #include <math.h>       // sqrt
 #include <signal.h>     // sigaction
 #include <unistd.h>     // close
-#include <sys/errno.h>  // errno
+#include <err.h>        // errno
+#include <errno.h>      // errno
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/time.h>
@@ -44,7 +45,7 @@ void onsig(int sig) {
 }
 
 const char* usage =
-"usage: ping host\n";
+"usage: ping host";
 
 void ping(const struct sockaddr_in* dest) {
   /* Prepare to receive. We want minimal processing between send and
@@ -104,8 +105,7 @@ int main(int argc, const char** argv) {
 
   /* Parse command line. */
   if (argc != 2) {
-    fputs(usage, stderr);
-    exit(EXIT_FAILURE);
+    err(EXIT_FAILURE, usage);
   }
 
   destname = argv[1];
@@ -123,9 +123,8 @@ int main(int argc, const char** argv) {
   struct sigaction act;
   act.sa_handler = &onsig;
   if (-1 == sigaction(SIGINT, &act, /*oact=*/NULL)) {
-    perror("could not schedule reporting");
     jfsock_dtor(&sock);
-    exit(errno);
+    err(errno, "could not schedule reporting");
   }
 
   /* Construct ICMP header. */

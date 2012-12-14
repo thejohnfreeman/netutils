@@ -1,7 +1,8 @@
 #include <getopt.h>
 #include <stdio.h>
-#include <stdlib.h>    // exit, EXIT_FAILURE
 #include <unistd.h>    // getpid
+#include <stdlib.h>    // EXIT_FAILURE
+#include <err.h>
 
 #include "opts.h"
 
@@ -32,8 +33,7 @@ const char* usage =
 
 void option_assert(char** argv, bool expr, const char* msg) {
   if (!expr) {
-    fprintf(stderr, "%s: %s\n", argv[0], msg);
-    exit(EXIT_FAILURE);
+    err(EXIT_FAILURE, "%s: %s\n", argv[0], msg);
   }
 }
 
@@ -132,7 +132,7 @@ void parse_options(int argc, char** argv) {
         break;
 
       default:
-        exit(EXIT_FAILURE);
+        errx(EXIT_FAILURE, "unrecognized option");
     }
 
   }

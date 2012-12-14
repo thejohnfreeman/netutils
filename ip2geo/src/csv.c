@@ -1,6 +1,7 @@
 #include <assert.h>
-#include <stdlib.h>
-#include <string.h>
+#include <string.h> // strlen
+#include <stdlib.h> // malloc
+#include <err.h>
 #include <errno.h>
 
 #include "io.h"
@@ -11,8 +12,7 @@
 void csv_ctor(struct csv* csv) {
   csv->buffer = (char*)malloc(INITIAL_BUFFER_SIZE);
   if (!csv->buffer) {
-    perror("malloc");
-    exit(errno);
+    err(errno, "abort: malloc");
   }
   csv->size  = INITIAL_BUFFER_SIZE;
 }
@@ -26,8 +26,7 @@ void csv_next_row(struct csv* csv, FILE* file) {
 
     /* Try to get to an end-line, EOF, or end-of-buffer. */
     if (!fgets(csv->buffer + start, nspace, file) && ferror(file)) {
-      perror("fgets");
-      exit(errno);
+      err(errno, "abort: fgets");
     }
 
     /* Gives us the number of non-null characters from `start`. If adding one

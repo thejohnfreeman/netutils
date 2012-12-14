@@ -1,5 +1,5 @@
 #include <string.h>
-#include <stdlib.h> // exit
+#include <err.h>    // err
 #include <errno.h>  // errno
 
 #include "io.h"
@@ -37,8 +37,7 @@ long fseekln(FILE* file) {
   }
 
   if (ferror(file)) {
-    perror("fgetc");
-    exit(errno);
+    err(errno, "abort: fgetc");
   }
 
   return nread;
