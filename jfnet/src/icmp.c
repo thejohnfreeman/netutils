@@ -47,12 +47,12 @@ ssize_t jficmp_recv(struct jfsock* sock, void* buffer, size_t size,
 void jficmp_open(void* buffer, struct ip** oip, struct icmp** oicmp) {
   struct ip* ip   = (struct ip*)buffer;
   fixip_osx(ip);
-  u16_t ip_hdrlen = ip->ip_hl << 2;
+  u_int ip_hdrlen = ip->ip_hl << 2;
   assert(0 == ip_cksum(ip, ip_hdrlen));
   *oip            = ip;
 
   struct icmp* icmp = (struct icmp*)((u8_t*)buffer + ip_hdrlen);
-  u16_t icmp_len    = ntohs(ip->ip_len) - ip_hdrlen;
+  u_int icmp_len    = ntohs(ip->ip_len) - ip_hdrlen;
   /* Mac OS fucks with the data too much to get a correct checksum. */
   //assert(0 == ip_cksum(icmp, icmp_len));
   *oicmp            = icmp;
