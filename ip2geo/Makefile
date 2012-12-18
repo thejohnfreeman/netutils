@@ -69,6 +69,7 @@ $(OBJECTS) : $(OBJDIR)/$(SRCDIR)/%.o : $(SRCDIR)/%.c
 
 ## target
 
+$(EXE) : ../jfnet/lib/libjfnet.a
 $(EXE) : $(OBJECTS)
 	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) $(LFLAGS) -o $@ $^
