@@ -5,6 +5,7 @@ SOURCES := \
 	io.c \
 	compare.c \
 	lookup.c \
+	loc.c \
 
 OBJDIR := build
 OBJECTS := $(SOURCES:%.c=$(OBJDIR)/$(SRCDIR)/%.o)
