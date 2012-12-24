@@ -12,10 +12,10 @@ INSTALLDIR := $(abspath $(INSTALLDIR))
 EXE := traceroute-mt
 EXE := $(INSTALLDIR)/$(EXE)
 
-INCPATHS := ../proconq/include
+INCPATHS := ../pcq/include
 
-LIBPATHS := ../proconq/lib
-LIBS := proconq
+LIBPATHS := ../pcq/lib
+LIBS := pcq
 
 
 ## default target
@@ -65,7 +65,7 @@ $(OBJECTS) : $(OBJDIR)/$(SRCDIR)/%.o : $(SRCDIR)/%.c
 
 ## target
 
-$(EXE) : ../proconq/lib/libproconq.a
+$(EXE) : ../pcq/lib/libpcq.a
 $(EXE) : $(OBJECTS)
 	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) $(LFLAGS) -o $@ $^

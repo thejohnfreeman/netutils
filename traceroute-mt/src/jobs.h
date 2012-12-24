@@ -2,25 +2,28 @@
 #define TRACEROUTE_MT_JOBS_H
 
 #include <pthread.h>
-#include <proconq.h>
+#include <pcq.h>
 
-struct job {
-  int          ttl;
-  struct token tok;
-};
+#include "iter.h"
 
-struct jobsq {
-  pthread_mutex_t mutex;
-  /* Job creator. */
-  int             next;
-  bool            done;
-  struct proconq  pcq;
+struct qmap {
+  pthread_t*        threads;
+  int               nthreads;
+  struct pcq_queue* q;
+  pthread_mutex_t   mutex;
 };
 
 void
-jobsq_ctor(struct jobsq* jq, int n);
-struct job
-jobsq_next(struct jobsq* jq);
+qmap_ctor(struct qmap* qm, int num, int size);
+void
+qmap_map(struct qmap* qm, void* it, struct iter_vtable* vt, int nworkers,
+    bool (*f)(void* in, void* out));
+bool
+qmap_empty(struct qmap* qm);
+void
+qmap_pop(struct qmap* qm, void* out);
+void
+qmap_dtor(struct qmap* qm);
 
 #endif
 

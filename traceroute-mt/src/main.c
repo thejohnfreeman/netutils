@@ -1,50 +1,37 @@
 #include <stdio.h>
 #include <err.h>
 
-#include "jobs.h"
+#include "qmap.h"
+#include "countit.h"
 
-#define BUFFER_SIZE 4
 #define NUM_JOBS    10
 
-void* trace1(void* args) {
-  struct jobsq* jq = (struct jobsq*)args;
-
-  while (1) {
-    /* Job start. */
-    struct job j = jobsq_next(jq);
-
-    /* What to do if no jobs? */
-    if (j.ttl > NUM_JOBS) {
-      return NULL;
-    }
-
-    /* Job finish. */
-    proconq_push(&jq->pcq, &j.tok, (void*)j.ttl);
-    if (j.ttl == NUM_JOBS) {
-      jq->done = true;
-    }
-  }
+bool trace1(void* in, void* out) {
+  int ttl = *((int*)in);
+  *((int*)out) = ttl;
+  return (ttl > NUM_JOBS);
 }
 
+#define BUFFER_SIZE 4
 #define NUM_THREADS 8
 
 int main() {
-  struct jobsq jq;
-  jobsq_ctor(&jq, BUFFER_SIZE);
+  struct qmap qm;
+  qmap_ctor(&qm, BUFFER_SIZE, sizeof(int));
 
-  pthread_t threads[NUM_THREADS] = { NULL };
+  struct countit     it;
+  struct iter_vtable vt;
+  countit_ctor(&it, &vt, 0, NUM_JOBS);
 
-  int error;
-  for (int i = 0; i < NUM_THREADS; ++i) {
-    if ((error = pthread_create(threads + i, /*attr=*/NULL, &trace1, &jq))) {
-      errc(error, error, "could not create thread");
-    }
-  }
+  qmap_map(&qm, &it, &vt, NUM_THREADS, &trace1);
 
-  while (!jq.done || !proconq_empty(&jq.pcq)) {
-    int ttl = (int)proconq_pop(&jq.pcq);
+  int ttl;
+  while (!qmap_empty(&qm)) {
+    qm_pop(&qm, &ttl);
     printf("ttl = %d\n", ttl);
   }
+
+  qmap_dtor(&qm);
 
   fflush(stdout);
   return 0;
