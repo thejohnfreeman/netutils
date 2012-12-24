@@ -1,13 +1,13 @@
 SRCDIR := src
 SOURCES := \
-	proconq.c
+	pcq.c
 
 OBJDIR := build
 OBJECTS := $(SOURCES:%.c=$(OBJDIR)/$(SRCDIR)/%.o)
 
 INSTALLDIR := lib
 
-LIB := proconq
+LIB := pcq
 LIB := $(INSTALLDIR)/lib$(LIB).a
 
 ## default target
