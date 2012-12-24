@@ -11,31 +11,36 @@ struct pcq_token {
 
 struct pcq_slot {
   bool  is_full;
-  void* data;
 };
 
 struct pcq_queue {
-  int              size;
-  struct pcq_slot* buffer;
+  int             num;
+  int             size;
+  char*           buffer;
   /* Slot for next token. Always ahead. May not lap icon. */
-  int              ipro;
+  int             ipro;
   /* Slot for next data. Always behind. May not pass ipro. */
-  int              icon;
-  pthread_mutex_t  mutex;
-  pthread_cond_t   is_not_full;
-  pthread_cond_t   is_not_empty;
+  int             icon;
+  bool            is_closed;
+  pthread_mutex_t mutex;
+  pthread_cond_t  is_not_full;
+  pthread_cond_t  is_not_empty;
 };
 
 void
-pcq_ctor(struct pcq_queue* q, int n);
+pcq_ctor(struct pcq_queue* q, int num, int size);
+int
+pcq_sizeoft(struct pcq_queue* q);
 bool
 pcq_empty(struct pcq_queue* q);
 struct pcq_token
 pcq_claim(struct pcq_queue* q);
+int
+pcq_push(struct pcq_queue* q, struct pcq_token* tok, bool is_last, void* in);
+int
+pcq_pop(struct pcq_queue* q, void* out);
 void
-pcq_push(struct pcq_queue* q, struct pcq_token* tok, void* data);
-void*
-pcq_pop(struct pcq_queue* q);
+pcq_dtor(struct pcq_queue* q);
 
 #endif
 
