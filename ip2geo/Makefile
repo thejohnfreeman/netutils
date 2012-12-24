@@ -5,6 +5,7 @@ SOURCES := \
 	io.c \
 	compare.c \
 	lookup.c \
+	loc.c \
 
 OBJDIR := build
 OBJECTS := $(SOURCES:%.c=$(OBJDIR)/$(SRCDIR)/%.o)
@@ -68,6 +69,7 @@ $(OBJECTS) : $(OBJDIR)/$(SRCDIR)/%.o : $(SRCDIR)/%.c
 
 ## target
 
+$(EXE) : ../jfnet/lib/libjfnet.a
 $(EXE) : $(OBJECTS)
 	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) $(LFLAGS) -o $@ $^

@@ -28,5 +28,7 @@ void fixip_osx(struct ip* ip) {
   u16_t ip_hdrlen = ip->ip_hl << 2;
   u16_t ip_totlen = ip->ip_len + ip_hdrlen;
   ip->ip_len = htons(ip_totlen);
+  /* Also reverses the byte order of the fragment offset / flags field. */
+  ip->ip_off = htons(ip->ip_off);
 }
 

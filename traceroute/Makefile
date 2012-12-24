@@ -68,6 +68,7 @@ $(OBJECTS) : $(OBJDIR)/$(SRCDIR)/%.o : $(SRCDIR)/%.c
 
 ## target
 
+$(EXE) : ../jfnet/lib/libjfnet.a
 $(EXE) : $(OBJECTS)
 	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) $(LFLAGS) -o $@ $^
@@ -78,7 +79,7 @@ $(EXE) : $(OBJECTS)
 .PHONY : test
 
 test : all
-	$(abspath $(EXE)) google.com
+	$(abspath $(EXE)) -w .1 -q 1 bloomberg.com
 
 
 ## cleaning

@@ -2,7 +2,8 @@ PROJECTS := \
 	jfnet \
 	ping \
 	traceroute \
-	pcq
+	pcq \
+	ip2geo \
 
 # $1 = target
 defer = \

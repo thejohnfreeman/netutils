@@ -1,4 +1,4 @@
-#include <stdlib.h> // EXIT_FAILURE
+#include <stdlib.h> // EXIT_FAILURE, atof
 
 #include <jfnet/inet.h>
 
@@ -6,7 +6,7 @@
 #include "compare.h"
 
 int ip2geo(const char* host, FILE* blk_db, FILE* loc_db, struct csv* csv,
-    float* lat, float* lng)
+    struct loc* loc)
 {
   union addr addr;
   int error = sscanf(host, "%hhu.%hhu.%hhu.%hhu",
@@ -49,9 +49,9 @@ int ip2geo(const char* host, FILE* blk_db, FILE* loc_db, struct csv* csv,
   while (i--) {
     field = csv_next_field(csv);
   }
-  *lat = atof(field);
-  field = csv_next_field(csv);
-  *lng = atof(field);
+  loc->lat = atof(field);
+  field    = csv_next_field(csv);
+  loc->lng = atof(field);
 
   return EXIT_SUCCESS;
 }
