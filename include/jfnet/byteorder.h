@@ -1,7 +1,7 @@
 #ifndef JFNET_BYTE_ORDER_H
 #define JFNET_BYTE_ORDER_H
 
-#include <sys/_endian.h>
+#include <endian.h>
 
 typedef unsigned char  u8_t;
 typedef unsigned short u16_t;
