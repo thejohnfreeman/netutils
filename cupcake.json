@@ -1,0 +1,10 @@
+{
+  "libraries": [
+    {"name": "jfnet", "links": ["${PROJECT_NAME}.imports.main"]}
+  ],
+  "executables": [
+    {"name": "ping", "links": ["${PROJECT_NAME}.libjfnet", "m"]},
+    {"name": "traceroute", "links": ["${PROJECT_NAME}.libjfnet"]},
+    {"name": "ip2geo", "links": ["${PROJECT_NAME}.libjfnet"]}
+  ]
+}
